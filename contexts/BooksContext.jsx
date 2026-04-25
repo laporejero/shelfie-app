@@ -1,6 +1,6 @@
-import { createContext, useState } from "react";
-import { databases } from "../lib/appwrite";
-import { ID, Permission, Role } from "appwrite";
+import { createContext, useEffect, useState } from "react";
+import { databases, client } from "../lib/appwrite";
+import { ID, Permission, Query, Role } from "appwrite";
 import { useUser } from '../hooks/useUser'
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID
@@ -14,7 +14,16 @@ export function BooksProvider({ children }) {
 
     async function fetchBooks() {
         try {
-            
+            const response = await databases.listDocuments(
+                DATABASE_ID,
+                TABLE_ID,
+                [
+                    Query.equal('userId', user.$id)
+                ]
+            )
+
+            setBooks(response.documents)
+            console.log(response.documents)
         } catch (error) {
             console.error(error.message)
         }
@@ -22,7 +31,13 @@ export function BooksProvider({ children }) {
 
     async function fetchBookById(id) {
         try {
-            
+            const response = await databases.listDocuments(
+                DATABASE_ID,
+                TABLE_ID,
+                id
+            )
+
+            return response
         } catch (error) {
             console.error(error.message)
         }
@@ -53,6 +68,54 @@ export function BooksProvider({ children }) {
             console.error(error.message)
         }
     }
+
+    // useEffect(() => {
+    //     let unsubscribe
+    //     const channel = `databases.${DATABASE_ID}.collections.${TABLE_ID}.documents`
+
+    //     if (user) {
+    //         fetchBooks()
+
+    //         unsubscribe = client.subscribe(channel, (response) => {
+    //             const { payload, events } = response
+
+    //             if (events[0].includes('create')) {
+    //                 setBooks((prevBooks) => [...prevBooks, payload])
+    //             }
+    //         })
+    //     } else {
+    //         setBooks([])
+    //     }
+
+    //     return () => {
+    //         if (unsubscribe) unsubscribe()
+    //     }
+
+    // }, [user])
+
+    useEffect(() => {
+        if (!user) {
+            setBooks([]);
+            return;
+        }
+
+        fetchBooks();
+
+        const channel = `databases.${DATABASE_ID}.collections.${TABLE_ID}.documents`;
+
+        const unsubscribe = client.subscribe(channel, (response) => {
+            console.log("Realtime:", response);
+
+            if (response.events.some(e => e.includes('.create'))) {
+                fetchBooks();
+            }
+        });
+
+        return () => {
+            unsubscribe();
+        };
+
+    }, [user]);
 
     return (
         <BooksContext.Provider
