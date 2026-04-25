@@ -63,59 +63,67 @@ export function BooksProvider({ children }) {
 
     async function deleteBook(id) {
         try {
-            
+            await databases.deleteDocument(
+                DATABASE_ID,
+                TABLE_ID,
+                id
+            )
         } catch (error) {
             console.error(error.message)
         }
     }
 
-    // useEffect(() => {
-    //     let unsubscribe
-    //     const channel = `databases.${DATABASE_ID}.collections.${TABLE_ID}.documents`
-
-    //     if (user) {
-    //         fetchBooks()
-
-    //         unsubscribe = client.subscribe(channel, (response) => {
-    //             const { payload, events } = response
-
-    //             if (events[0].includes('create')) {
-    //                 setBooks((prevBooks) => [...prevBooks, payload])
-    //             }
-    //         })
-    //     } else {
-    //         setBooks([])
-    //     }
-
-    //     return () => {
-    //         if (unsubscribe) unsubscribe()
-    //     }
-
-    // }, [user])
-
     useEffect(() => {
-        if (!user) {
-            setBooks([]);
-            return;
+        let unsubscribe
+        const channel = `databases.${DATABASE_ID}.collections.${TABLE_ID}.documents`
+
+        if (user) {
+            fetchBooks()
+
+            unsubscribe = client.subscribe(channel, (response) => {
+                const { payload, events } = response
+
+                if (events[0].includes('create')) {
+                    setBooks((prevBooks) => [...prevBooks, payload])
+                }
+
+                if (events[0].includes('delete')) {
+                    setBooks((prevBooks) => prevBooks.filter((book) => book.$id !== payload.$id))
+                }
+            })
+        } else {
+            setBooks([])
         }
 
-        fetchBooks();
-
-        const channel = `databases.${DATABASE_ID}.collections.${TABLE_ID}.documents`;
-
-        const unsubscribe = client.subscribe(channel, (response) => {
-            console.log("Realtime:", response);
-
-            if (response.events.some(e => e.includes('.create'))) {
-                fetchBooks();
-            }
-        });
-
         return () => {
-            unsubscribe();
-        };
+            if (unsubscribe) unsubscribe()
+        }
 
-    }, [user]);
+    }, [user])
+
+    // useEffect(() => {
+    //     if (!user) {
+    //         setBooks([]);
+    //         return;
+    //     }
+
+    //     fetchBooks();
+
+    //     const channel = `databases.${DATABASE_ID}.collections.${TABLE_ID}.documents`;
+
+    //     const unsubscribe = client.subscribe(channel, (response) => {
+    //         console.log("Realtime:", response);
+
+    //         if (response.events.some(e => e.includes('.create'))) {
+    //             fetchBooks();
+    //         }
+    //     });
+
+    //     return () => {
+    //         unsubscribe();
+    //     };
+
+    // }, [user]);
 
     return (
         <BooksContext.Provider
