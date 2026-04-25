@@ -61,6 +61,28 @@ export function BooksProvider({ children }) {
         }
     }
 
+    async function updateBook(id, updateData) {
+        try {
+            const updated = await databases.updateDocument(
+                DATABASE_ID,
+                TABLE_ID,
+                id,
+                updateData
+            )
+
+            // update local state immediately (important for UX)
+            setBooks((prevBooks) =>
+                prevBooks.map((book) =>
+                    book.$id === id ? updated : book
+                )
+            )
+
+            return updated
+        } catch (error) {
+            console.error(error.message)
+        }
+    }
+
     async function deleteBook(id) {
         try {
             await databases.deleteDocument(
@@ -85,6 +107,14 @@ export function BooksProvider({ children }) {
 
                 if (events[0].includes('create')) {
                     setBooks((prevBooks) => [...prevBooks, payload])
+                }
+
+                if (events[0].includes('update')) {
+                    setBooks((prevBooks) => 
+                        prevBooks.map((book) =>
+                            book.$id === payload.$id ? payload : book
+                        )
+                    )
                 }
 
                 if (events[0].includes('delete')) {
@@ -127,7 +157,7 @@ export function BooksProvider({ children }) {
 
     return (
         <BooksContext.Provider
-            value={{ books, fetchBooks, fetchBookById, createBook, deleteBook }}
+            value={{ books, fetchBooks, fetchBookById, createBook, deleteBook, updateBook }}
         >
             {children}
         </BooksContext.Provider>

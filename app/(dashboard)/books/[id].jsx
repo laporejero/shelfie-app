@@ -19,6 +19,10 @@ const BookDetails = () => {
   const { fetchBookById, deleteBook } = useBooks()
   const router = useRouter()
 
+  const handleEdit = () => {
+    router.push(`/books/edit/${id}`)
+  }
+
   const handleDelete = async () => {
     await deleteBook(id)
     setBook(null)
@@ -55,6 +59,14 @@ const BookDetails = () => {
             <ThemedText>{book.description}</ThemedText>
         </ThemedCard>
 
+        {/* edit button */}
+        <ThemedButton style={styles.edit} onPress={handleEdit}>
+            <Text style={{color: '#fff', textAlign: 'center'}}>
+                Edit Book
+            </Text>
+        </ThemedButton>
+
+        {/* delete button */}
         <ThemedButton style={styles.delete} onPress={handleDelete}>
             <Text style={{color: '#fff', textAlign: 'center'}}>
                 Delete Book
@@ -77,6 +89,12 @@ const styles = StyleSheet.create({
     },
     card: {
     margin: 20,
+    },
+    edit: {
+    marginTop: 40,
+    backgroundColor: Colors.primary,
+    width: 200,
+    alignSelf: "center",
     },
     delete: {
     marginTop: 40,
