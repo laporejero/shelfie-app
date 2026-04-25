@@ -18,11 +18,11 @@ Tech Stack
 - Custom Themed Components (UI consistency)
 
 Project Structure
-/app – Screens and routes (Expo Router)
-/components – Reusable UI components
-/context – Books state management (CRUD + realtime sync)
-/hooks – Custom hooks for data and auth
-/lib – Appwrite configuration
+- /app – Screens and routes (Expo Router)
+- /components – Reusable UI components
+- /context – Books state management (CRUD + realtime sync)
+- /hooks – Custom hooks for data and auth
+- /lib – Appwrite configuration
 
 What I Learned
 - Building full CRUD operations in a mobile app
